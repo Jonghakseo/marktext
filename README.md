@@ -70,12 +70,17 @@
 
 - Available on [AUR](https://aur.archlinux.org/packages/marktext-tkaixiang-bin) thanks to [@kromsam](https://github.com/kromsam)
 
-## MacOS
+## macOS
 
-> ⚠️ MacOS releases will show a "`MarkText is damaged and can't be opened`" due to a **lack of notorisation**.
-> Please see [this fix here](https://github.com/marktext/marktext/issues/3004#issuecomment-1038207300) (which also applies to any other app that lacks a Developer Account signing)
+> ⚠️ macOS releases will show a "`MarkText is damaged and can't be opened`" due to a **lack of code signing** (requires $99/year Apple Developer account).
+
+**Fix:** Run the following command in Terminal after downloading:
+```bash
+xattr -cr /Applications/marktext.app
+```
 
 - Available on the [Releases Page](https://github.com/Tkaixiang/marktext/releases)
+- Tested on: `macOS 15.6.1 Sequoia`, `macOS 26 Tahoe`
 
 # 2. Screenshots
 

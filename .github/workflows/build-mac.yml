@@ -51,3 +51,12 @@ jobs:
           make_latest: true
           files: dist/*.dmg
           generate_release_notes: true
+          body: |
+            ## macOS
+
+            > ⚠️ macOS shows "`MarkText is damaged and can't be opened`" due to lack of code signing.
+
+            **Fix:** Run in Terminal after downloading:
+            ```bash
+            xattr -cr /Applications/marktext.app
+            ```

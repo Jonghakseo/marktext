@@ -74,6 +74,8 @@ nsis:
 mac:
   artifactName: 'marktext-mac-${arch}-${version}.${ext}'
   identity: null
+  hardenedRuntime: false
+  gatekeeperAssess: false
   forceCodeSigning: false
   entitlementsInherit: build/mac/entitlements.mac.plist
   extendInfo:
