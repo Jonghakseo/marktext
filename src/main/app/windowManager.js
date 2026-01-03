@@ -6,6 +6,7 @@ import Watcher, {
   WATCHER_STABILITY_POLL_INTERVAL
 } from '../filesystem/watcher'
 import { WindowType } from '../windows/base'
+import { isOsx, appState } from '../config'
 
 class WindowActivityList {
   constructor() {
@@ -321,8 +322,9 @@ class WindowManager extends EventEmitter {
       browserWindow.destroy()
     }
 
-    // Quit application on macOS if not windows are opened.
-    if (_windows.size === 0) {
+    // Quit application if no windows are opened
+    // macOS: Only quit if user explicitly requested (Cmd+Q), otherwise stay in tray
+    if (_windows.size === 0 && (!isOsx || appState.isQuitting)) {
       app.quit()
     }
     return true

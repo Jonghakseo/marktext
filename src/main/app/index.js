@@ -5,7 +5,7 @@ import dayjs from 'dayjs'
 import log from 'electron-log'
 import { app, BrowserWindow, clipboard, dialog, nativeTheme, shell, ipcMain } from 'electron'
 import { isChildOfDirectory } from 'common/filesystem/paths'
-import { isLinux, isOsx, isWindows } from '../config'
+import { isLinux, isOsx, isWindows, appState } from '../config'
 import parseArgs from '../cli/parser'
 import { normalizeAndResolvePath } from '../filesystem'
 import { normalizeMarkdownPath } from '../filesystem/markdown'
@@ -13,6 +13,7 @@ import { registerKeyboardListeners } from '../keyboard'
 import { selectTheme } from '../menu/actions/theme'
 import { dockMenu } from '../menu/templates'
 import registerSpellcheckerListeners from '../spellchecker'
+import { createTray } from '../tray'
 import { watchers } from '../utils/imagePathAutoComplement'
 import { WindowType } from '../windows/base'
 import EditorWindow from '../windows/editor'
@@ -30,6 +31,8 @@ class App {
     this._openFilesCache = []
     this._openFilesTimer = null
     this._windowManager = this._accessor.windowManager
+    this._tray = null
+    this._isQuitting = false
     // this.launchScreenshotWin = null // The window which call the screenshot.
     // this.shortcutCapture = null
 
@@ -38,6 +41,10 @@ class App {
     this._listenForIpcMain()
     // Initialize theme listener
     this._themeListenerRegistered = false
+  }
+
+  get isQuitting() {
+    return this._isQuitting
   }
 
   /**
@@ -103,7 +110,17 @@ class App {
       // dock icon is clicked and there are no other windows open.
       if (this._windowManager.windowCount === 0) {
         this.ready()
+      } else {
+        // Show all hidden windows when dock icon is clicked
+        for (const window of this._windowManager.windows.values()) {
+          window.browserWindow.show()
+        }
       }
+    })
+
+    app.on('before-quit', () => {
+      this._isQuitting = true
+      appState.isQuitting = true
     })
 
     // Prevent to load webview and opening links or new windows via HTML/JS.
@@ -296,6 +313,12 @@ class App {
 
     if (isOsx) {
       app.dock.setMenu(dockMenu)
+      // Delay tray creation to avoid blocking app startup
+      if (!this._tray) {
+        setTimeout(() => {
+          this._tray = createTray(this._windowManager)
+        }, 100)
+      }
     } else if (isWindows) {
       app.setJumpList([
         {
