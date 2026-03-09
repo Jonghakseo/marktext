@@ -6,7 +6,7 @@ import windowStateKeeper from 'electron-window-state'
 import { isChildOfDirectory, isSamePathSync } from 'common/filesystem/paths'
 import BaseWindow, { WindowLifecycle, WindowType } from './base'
 import { ensureWindowPosition, zoomIn, zoomOut } from './utils'
-import { TITLE_BAR_HEIGHT, editorWinOptions, isLinux, isOsx, appState } from '../config'
+import { TITLE_BAR_HEIGHT, editorWinOptions, isLinux, isOsx } from '../config'
 import { showEditorContextMenu } from '../contextMenu/editor'
 import { loadMarkdownFile } from '../filesystem/markdown'
 import { switchLanguage } from '../spellchecker'
@@ -182,13 +182,6 @@ class EditorWindow extends BaseWindow {
     // Before closed. We cancel the action and ask the editor further instructions.
     win.on('close', (event) => {
       this.emit('window-close')
-
-      // macOS: Hide window instead of closing when not quitting
-      if (isOsx && !appState.isQuitting) {
-        event.preventDefault()
-        win.hide()
-        return
-      }
 
       event.preventDefault()
       win.webContents.send('mt::ask-for-close')
