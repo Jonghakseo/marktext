@@ -872,8 +872,9 @@ const handleDialogTableConfirm = () => {
 }
 
 // listen for `open-single-file` event, it will call this method only when open a new file.
-const setMarkdownToEditor = ({ markdown: newMarkdown, cursor: newCursor }) => {
+const setMarkdownToEditor = ({ id, markdown: newMarkdown, cursor: newCursor }) => {
   if (editor.value) {
+    editorStore.MARK_EDITOR_SYNC(id)
     editor.value.clearHistory()
     if (newCursor) {
       editor.value.setMarkdown(newMarkdown, newCursor, true)
@@ -885,6 +886,7 @@ const setMarkdownToEditor = ({ markdown: newMarkdown, cursor: newCursor }) => {
 
 // listen for markdown change form source mode or change tabs etc
 const handleFileChange = ({
+  id,
   markdown: newMarkdown,
   cursor: newCursor,
   renderCursor,
@@ -901,6 +903,7 @@ const handleFileChange = ({
     }
 
     if (typeof newMarkdown === 'string') {
+      editorStore.MARK_EDITOR_SYNC(id)
       editor.value.setMarkdown(newMarkdown, newCursor, renderCursor, muyaIndexCursor, blocks)
     } else if (newCursor) {
       editor.value.setCursor(newCursor)

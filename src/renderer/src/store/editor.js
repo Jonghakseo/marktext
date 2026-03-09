@@ -60,6 +60,13 @@ export const useEditorStore = defineStore('editor', {
       this.currentFile.scrollTop = scrollTop
     },
 
+    MARK_EDITOR_SYNC(tabId = this.currentFile.id) {
+      const tab = this.tabs.find((t) => t.id === tabId)
+      if (tab) {
+        tab.pendingEditorSync = true
+      }
+    },
+
     /**
      * Push a tab specific notification on stack that never disappears.
      */
@@ -1022,10 +1029,6 @@ export const useEditorStore = defineStore('editor', {
       markdown = adjustTrailingNewlines(markdown, trimTrailingNewline)
       this.currentFile.markdown = markdown
 
-      if (oldMarkdown.length === 0 && markdown.length === 1 && markdown[0] === '\n') {
-        return
-      }
-
       if (wordCount) this.currentFile.wordCount = wordCount
       if (cursor) this.currentFile.cursor = cursor
       if (muyaIndexCursor) this.currentFile.muyaIndexCursor = muyaIndexCursor
@@ -1034,6 +1037,15 @@ export const useEditorStore = defineStore('editor', {
       if (toc && !equal(toc, this.listToc)) {
         this.listToc = toc
         this.toc = listToTree(toc)
+      }
+
+      if (this.currentFile.pendingEditorSync) {
+        this.currentFile.pendingEditorSync = false
+        return
+      }
+
+      if (oldMarkdown.length === 0 && markdown.length === 1 && markdown[0] === '\n') {
+        return
       }
 
       if (markdown !== oldMarkdown) {
