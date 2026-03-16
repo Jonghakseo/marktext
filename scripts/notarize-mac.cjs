@@ -1,6 +1,7 @@
 'use strict'
 
 const fs = require('fs')
+const os = require('os')
 const path = require('path')
 const { execFileSync } = require('child_process')
 
@@ -29,24 +30,37 @@ module.exports = async function notarizeMac(context) {
     throw new Error(`Unable to find app bundle for notarization: ${appPath}`)
   }
 
-  console.log(`[notarize] Submitting ${appPath} to Apple notary service...`)
-  execFileSync(
-    'xcrun',
-    [
-      'notarytool',
-      'submit',
-      appPath,
-      '--apple-id',
-      process.env.APPLE_ID,
-      '--password',
-      process.env.APPLE_APP_SPECIFIC_PASSWORD,
-      '--team-id',
-      process.env.APPLE_TEAM_ID,
-      '--wait'
-    ],
-    { stdio: 'inherit' }
-  )
+  const zipPath = path.join(os.tmpdir(), `${productFilename}-${Date.now()}.zip`)
 
-  console.log(`[notarize] Stapling notarization ticket to ${appPath}...`)
-  execFileSync('xcrun', ['stapler', 'staple', appPath], { stdio: 'inherit' })
+  try {
+    console.log(`[notarize] Creating zip for notarization submission: ${zipPath}`)
+    execFileSync('ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', appPath, zipPath], {
+      stdio: 'inherit'
+    })
+
+    console.log(`[notarize] Submitting ${zipPath} to Apple notary service...`)
+    execFileSync(
+      'xcrun',
+      [
+        'notarytool',
+        'submit',
+        zipPath,
+        '--apple-id',
+        process.env.APPLE_ID,
+        '--password',
+        process.env.APPLE_APP_SPECIFIC_PASSWORD,
+        '--team-id',
+        process.env.APPLE_TEAM_ID,
+        '--wait'
+      ],
+      { stdio: 'inherit' }
+    )
+
+    console.log(`[notarize] Stapling notarization ticket to ${appPath}...`)
+    execFileSync('xcrun', ['stapler', 'staple', appPath], { stdio: 'inherit' })
+  } finally {
+    if (fs.existsSync(zipPath)) {
+      fs.rmSync(zipPath, { force: true })
+    }
+  }
 }

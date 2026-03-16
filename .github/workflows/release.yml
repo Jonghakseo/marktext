@@ -62,13 +62,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Mac builds have been disabled due to a lack of a Developer ID to sign it
-      # All builds by default will give a "this app is damaged and can't be opened" error
       - name: build-mac
         if: matrix.os == 'macos-latest'
-        run: npm run build:mac
+        run: |
+          if [[ -n "$APPLE_ID" && -n "$APPLE_APP_SPECIFIC_PASSWORD" && -n "$APPLE_TEAM_ID" && ( -n "$CSC_LINK" || -n "$CSC_NAME" ) ]]; then
+            npm run build:mac:notarized
+          else
+            npm run build:mac
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_NAME: ${{ secrets.CSC_NAME }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
 
       - name: build-win
         if: matrix.os == 'windows-latest'
@@ -82,9 +91,10 @@ jobs:
           draft: true
           name: 'Release ${{ github.ref_name }}'
           body: |
-            ## ⚠️ Note for MacOS Users
-            - MacOS releases will show a "`MarkText is damaged and can't be opened`" due to a **lack of notorisation**. 
-            - Please see [this fix here](https://github.com/marktext/marktext/issues/3004#issuecomment-1038207300) (which also applies to any other app that lacks a Developer Account signing) 
+            ## ⚠️ Note for macOS Users
+            - If Apple signing credentials are configured in CI, the macOS artifact is signed and notarized.
+            - Otherwise the macOS artifact is only ad-hoc signed and Gatekeeper may block first launch.
+            - Workaround for non-notarized builds: `xattr -cr /Applications/marktext.app`
 
             ## Changes
           files: |

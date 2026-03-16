@@ -33,9 +33,20 @@ jobs:
         run: pnpm exec electron-rebuild -f
 
       - name: Build macOS
-        run: pnpm build:mac:dmg
+        run: |
+          if [[ -n "$APPLE_ID" && -n "$APPLE_APP_SPECIFIC_PASSWORD" && -n "$APPLE_TEAM_ID" && ( -n "$CSC_LINK" || -n "$CSC_NAME" ) ]]; then
+            pnpm build:mac:dmg:notarized
+          else
+            pnpm build:mac:dmg
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_NAME: ${{ secrets.CSC_NAME }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
 
       - name: Get version
         id: version
@@ -54,9 +65,9 @@ jobs:
           body: |
             ## macOS
 
-            > ⚠️ macOS shows "`MarkText is damaged and can't be opened`" due to lack of code signing.
+            > ⚠️ If Apple signing credentials are not configured in CI, the macOS build is only ad-hoc signed and is **not notarized**. Gatekeeper may still block first launch.
 
-            **Fix:** Run in Terminal after downloading:
+            **Workaround:** Run in Terminal after downloading:
             ```bash
             xattr -cr /Applications/marktext.app
             ```

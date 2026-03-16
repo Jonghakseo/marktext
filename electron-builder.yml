@@ -73,7 +73,9 @@ nsis:
   include: windows/installer.nsh
 mac:
   artifactName: 'marktext-mac-${arch}-${version}.${ext}'
-  identity: null
+  # For non-notarized builds, use ad-hoc signing so the app bundle remains a valid macOS app
+  # (electron-builder recommends '-' instead of null for ARM/Apple Silicon builds).
+  identity: '-'
   hardenedRuntime: false
   gatekeeperAssess: false
   forceCodeSigning: false
