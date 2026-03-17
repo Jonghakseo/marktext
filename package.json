@@ -115,6 +115,7 @@
       "electron-winstaller",
       "esbuild",
       "keytar",
+      "native-keymap",
       "protobufjs",
       "unrs-resolver",
       "vue-demi"
