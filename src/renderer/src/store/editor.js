@@ -997,6 +997,7 @@ export const useEditorStore = defineStore('editor', {
       cursor,
       muyaIndexCursor,
       history,
+      source,
       toc,
       blocks
     }) {
@@ -1041,6 +1042,10 @@ export const useEditorStore = defineStore('editor', {
 
       if (this.currentFile.pendingEditorSync) {
         this.currentFile.pendingEditorSync = false
+        return
+      }
+
+      if (source === 'programmatic') {
         return
       }
 
