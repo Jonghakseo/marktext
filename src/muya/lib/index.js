@@ -28,6 +28,7 @@ class Muya {
     this.options = Object.assign({}, MUYA_DEFAULT_OPTION, options)
     const { markdown } = this.options
     this.markdown = markdown
+    this.isProgrammaticUpdate = false
     this.container = getContainer(container, this.options)
     this.eventCenter = new EventCenter()
     this.tooltip = new ToolTip(this)
@@ -129,8 +130,17 @@ class Muya {
     const muyaIndexCursor = this.contentState.getMuyaIndexCursor()
     const history = this.getHistory()
     const toc = this.getTOC()
+    const source = this.isProgrammaticUpdate ? 'programmatic' : 'user'
 
-    eventCenter.dispatch('change', { markdown, wordCount, cursor, muyaIndexCursor, history, toc })
+    eventCenter.dispatch('change', {
+      markdown,
+      wordCount,
+      cursor,
+      muyaIndexCursor,
+      history,
+      toc,
+      source
+    })
   }
 
   dispatchSelectionChange = () => {
@@ -193,6 +203,7 @@ class Muya {
     muyaIndexCursor = undefined,
     blocks = undefined
   ) {
+    this.isProgrammaticUpdate = true
     let finalCursor = null
 
     if (blocks && cursor) {
@@ -221,6 +232,7 @@ class Muya {
     this.contentState.render(isRenderCursor)
     setTimeout(() => {
       this.dispatchChange()
+      this.isProgrammaticUpdate = false
     }, 0)
   }
 
